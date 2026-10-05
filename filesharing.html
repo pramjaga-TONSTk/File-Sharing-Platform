@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Transfer Platform</title>
+
+  <!-- Feather Icons CDN -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <style>
+    /* ========================================================
+       CSS VARIABLES & THEME
+       - Page background: Clean White / Light Slate (#ffffff / #f8fafc)
+       - Header: Solid deep black (#0f1117)
+       - Primary buttons & highlights: Light Lipstick Pink (#e05688)
+    ======================================================== */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --header-bg: #0f1117;
+      --sidebar-bg: #ffffff;
+      --border-color: #e2e8f0;
+
+      --text-primary: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #ffffff;
+
+      /* Light Lipstick Pink Palette */
+      --lipstick: #e05688;
+      --lipstick-hover: #c94474;
+      --lipstick-light: #fdf2f6;
+      --lipstick-border: #f6a9c7;
+      --lipstick-ring: rgba(224, 86, 136, 0.25);
+
+      --success-color: #10b981;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --transition: all 0.25s ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ========================================================
+       STAGE 1: LOGIN SCREEN (DEFAULT VISIBLE SCREEN)
+    ======================================================== */
+    #authScreen {
+      min-height: 100vh;
+      width: 100%;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 410px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .login-icon {
+      width: 58px;
+      height: 58px;
+      background-color: var(--lipstick-light);
+      color: var(--lipstick);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+
+    .login-title {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.3px;
+    }
+
+    .login-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      text-align: left;
+      margin-bottom: 1.15rem;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      outline: none;
+      transition: var(--transition);
+      background-color: #fafbfc;
+    }
+
+    .form-group input:focus {
+      border-color: var(--lipstick);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px var(--lipstick-ring);
+    }
+
+    .login-error {
+      color: #ef4444;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background-color: #fef2f2;
+      border-radius: var(--radius-sm);
+      border: 1px solid #fecaca;
+    }
+
+    /* ========================================================
+       STAGE 2: MAIN DASHBOARD & SOLID BLACK HEADER
+    ======================================================== */
+    #dashboardScreen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-header {
+      background-color: var(--header-bg);
+      height: 60px;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .pulse-indicator {
+      width: 8px;
+      height: 8px;
+      background-color: var(--lipstick);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--lipstick);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      background: #1e293b;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-logout:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    /* ========================================================
+       SIDEBAR & MAIN VIEW LAYOUT
+    ======================================================== */
+    .app-layout {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 60px);
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: var(--sidebar-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem 1rem;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0.75rem 1rem;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: left;
+      width: 100%;
+    }
+
+    .nav-item:hover {
+      background-color: var(--lipstick-light);
+      color: var(--lipstick);
+    }
+
+    .nav-item.active {
+      background-color: var(--lipstick-light);
+      color: var(--lipstick);
+      font-weight: 600;
+    }
+
+    .badge {
+      margin-left: auto;
+      background-color: #e2e8f0;
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .nav-item.active .badge {
+      background-color: var(--lipstick);
+      color: white;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2.5rem;
+      max-width: 980px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .view-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Hero Section */
+    .hero-section h1 {
+      font-size: 2.1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-section p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Steps Grid */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background-color: var(--lipstick-light);
+      color: var(--lipstick);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .step-card h3 {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ========================================================
+       TRANSFER BOX & IN-PAGE DROPZONE ANIMATION
+    ======================================================== */
+    .transfer-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .state-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 270px;
+    }
+
+    /* State 1: Drop Area */
+    .drop-area {
+      border: 2px dashed var(--lipstick-border);
+      border-radius: var(--radius-md);
+      width: 100%;
+      padding: 3rem 1.5rem;
+      transition: var(--transition);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #fdfafb;
+    }
+
+    .drop-area:hover, .drop-area.drag-over {
+      border-color: var(--lipstick);
+      background-color: var(--lipstick-light);
+    }
+
+    .drop-icon {
+      width: 60px;
+      height: 60px;
+      background-color: var(--lipstick-light);
+      color: var(--lipstick);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .drop-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .drop-sub {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    /* State 2: Selected Card */
+    .file-summary-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: 1px solid var(--border-color);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-md);
+      background-color: #fafbfc;
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-icon-box {
+      width: 44px;
+      height: 44px;
+      background-color: var(--lipstick-light);
+      color: var(--lipstick);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .file-info {
+      flex: 1;
+      text-align: left;
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      word-break: break-all;
+    }
+
+    .file-size {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* State 3: Upload Animation with SVG Circular Ring */
+    .circular-progress-wrap {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      margin-bottom: 1.25rem;
+    }
+
+    .progress-svg {
+      width: 130px;
+      height: 130px;
+      transform: rotate(-90deg);
+    }
+
+    .circle-bg {
+      fill: none;
+      stroke: #f1f5f9;
+      stroke-width: 8;
+    }
+
+    .circle-bar {
+      fill: none;
+      stroke: var(--lipstick);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 314; /* 2 * PI * 50 */
+      stroke-dashoffset: 314;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+
+    .progress-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+
+    .uploading-status-text {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .bytes-counter {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-family: monospace;
+    }
+
+    .linear-progress-bar {
+      width: 100%;
+      max-width: 320px;
+      height: 6px;
+      background-color: #f1f5f9;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .linear-progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--lipstick);
+      border-radius: 3px;
+      transition: width 0.1s linear;
+    }
+
+    /* State 4: Success View */
+    .success-circle {
+      width: 66px;
+      height: 66px;
+      background-color: #ecfdf5;
+      color: var(--success-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      animation: scaleCheck 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes scaleCheck {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 1.35rem;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .success-sub {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .share-link-group {
+      display: flex;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 450px;
+      margin-bottom: 1.5rem;
+    }
+
+    .share-link-group input {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background-color: #f8fafc;
+      font-size: 0.85rem;
+      outline: none;
+      font-family: monospace;
+    }
+
+    /* ========================================================
+       BUTTONS & UTILITIES (LIGHT LIPSTICK PINK)
+    ======================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-primary {
+      background-color: var(--lipstick);
+      color: var(--text-light);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--lipstick-hover);
+      box-shadow: 0 4px 12px var(--lipstick-ring);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-outline:hover {
+      background-color: #f1f5f9;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .btn-icon:hover {
+      color: #ef4444;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    /* Table & Settings */
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-sub {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .history-table th {
+      background-color: #f8fafc;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .history-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .history-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .file-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background-color: var(--lipstick-light);
+      color: var(--lipstick);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .empty-state {
+      padding: 3rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .settings-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+    }
+
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .settings-item:last-child {
+      border-bottom: none;
+    }
+
+    .settings-item h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .settings-item p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .settings-item input[type="checkbox"] {
+      accent-color: var(--lipstick);
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .app-layout {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+      .main-content {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <section id="authScreen">
+    <div class="login-card">
+      <div class="login-icon">
+        <i data-feather="lock"></i>
+      </div>
+      <h2 class="login-title">Sign In</h2>
+      <p class="login-subtitle">Enter your student ID or credentials to enter the platform</p>
+
+      <form id="authForm">
+        <div class="form-group">
+          <label for="inputUsername">Username / Student ID</label>
+          <input type="text" id="inputUsername" placeholder="e.g. 21CS042" required autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+          <label for="inputPassword">Password</label>
+          <input type="password" id="inputPassword" placeholder="••••••••" required />
+        </div>
+
+        <div id="authErrorMsg" class="login-error hidden">Please enter a valid username and password (min 4 characters).</div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <i data-feather="log-in"></i> Sign In to Platform
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <section id="dashboardScreen" class="hidden">
+
+    <!-- Top Solid Black Header -->
+    <header class="top-header">
+      <div class="header-status">
+        <span class="pulse-indicator"></span>
+        <span>Ready for transfer</span>
+      </div>
+      <div class="header-right">
+        <div class="user-tag">
+          <i data-feather="user" style="width: 14px; height: 14px;"></i>
+          <span id="activeUserLabel">Student</span>
+        </div>
+        <button id="btnLogout" class="btn-logout" title="Log out">
+          <i data-feather="log-out" style="width: 14px; height: 14px;"></i>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-layout">
+      <!-- Left Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-tab="home">
+            <i data-feather="upload-cloud"></i>
+            <span>Home</span>
+          </button>
+          <button class="nav-item" data-tab="history">
+            <i data-feather="clock"></i>
+            <span>Transfer History</span>
+            <span class="badge" id="historyCounter">0</span>
+          </button>
+        </nav>
+
+        <div>
+          <button class="nav-item" data-tab="settings">
+            <i data-feather="settings"></i>
+            <span>Settings</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+
+        <!-- VIEW 1: HOME -->
+        <section id="view-home" class="view-panel">
+          <div class="hero-section">
+            <h1>Direct, Secure File Sharing</h1>
+            <p>Send files across devices with fast end-to-end simulation and direct link generation.</p>
+          </div>
+
+          <!-- Step-by-Step Guide -->
+          <div class="steps-grid">
+            <div class="step-card">
+              <div class="step-num">1</div>
+              <h3>Select File</h3>
+              <p>Drag &amp; drop or browse any file directly from your computer.</p>
+            </div>
+            <div class="step-card">
+              <div class="step-num">2</div>
+              <h3>Upload &amp; Process</h3>
+              <p>Watch the real-time upload progress and dynamic byte telemetry.</p>
+            </div>
+            <div class="step-card">
+              <div class="step-num">3</div>
+              <h3>Share Link</h3>
+              <p>Instantly copy your secure link or download the file locally.</p>
+            </div>
+          </div>
+
+          <!-- Dropzone Container with 4 In-Page States -->
+          <div class="transfer-box">
+            <input type="file" id="filePicker" hidden />
+
+            <!-- State 1: Idle -->
+            <div id="stateIdle" class="state-container">
+              <div id="dropZone" class="drop-area">
+                <div class="drop-icon">
+                  <i data-feather="upload"></i>
+                </div>
+                <p class="drop-title">Drag &amp; drop your file here</p>
+                <p class="drop-sub">or click below to choose from your device</p>
+                <button type="button" class="btn btn-primary" id="btnBrowseFile">
+                  <i data-feather="folder"></i> Browse File
+                </button>
+              </div>
+            </div>
+
+            <!-- State 2: Selected -->
+            <div id="stateSelected" class="state-container hidden">
+              <div class="file-summary-card">
+                <div class="file-icon-box">
+                  <i data-feather="file"></i>
+                </div>
+                <div class="file-info">
+                  <div class="file-name" id="selectedFileName">filename.zip</div>
+                  <div class="file-size" id="selectedFileSize">0 MB</div>
+                </div>
+                <button class="btn-icon" id="btnRemoveFile" title="Remove file">
+                  <i data-feather="x"></i>
+                </button>
+              </div>
+
+              <div class="action-row">
+                <button class="btn btn-outline" id="btnSelectOther">Choose Another</button>
+                <button class="btn btn-primary" id="btnStartTransfer">
+                  <i data-feather="send"></i> Transfer Now
+                </button>
+              </div>
+            </div>
+
+            <!-- State 3: Uploading Animation -->
+            <div id="stateUploading" class="state-container hidden">
+              <div class="circular-progress-wrap">
+                <svg class="progress-svg" viewBox="0 0 120 120">
+                  <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
+                  <circle class="circle-bar" id="progressSvgCircle" cx="60" cy="60" r="50"></circle>
+                </svg>
+                <div class="progress-label" id="progressPctText">0%</div>
+              </div>
+
+              <h3 class="uploading-status-text">Uploading File...</h3>
+              <div class="bytes-counter" id="bytesCounterText">0 MB of 0 MB</div>
+
+              <div class="linear-progress-bar">
+                <div class="linear-progress-fill" id="linearProgressFill"></div>
+              </div>
+            </div>
+
+            <!-- State 4: Success State -->
+            <div id="stateSuccess" class="state-container hidden">
+              <div class="success-circle">
+                <i data-feather="check"></i>
+              </div>
+
+              <h2 class="success-title">File has transferred successfully!</h2>
+              <p class="success-sub">Your file is ready to share.</p>
+
+              <div class="share-link-group">
+                <input type="text" id="shareUrlInput" readonly value="" />
+                <button class="btn btn-primary" id="btnCopyShareUrl">
+                  <i data-feather="copy"></i> Copy
+                </button>
+              </div>
+
+              <div class="action-row">
+                <button class="btn btn-outline" id="btnDownloadNow">
+                  <i data-feather="download"></i> Download File
+                </button>
+                <button class="btn btn-primary" id="btnTransferAnother">
+                  <i data-feather="plus"></i> Transfer Another
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- VIEW 2: TRANSFER HISTORY -->
+        <section id="view-history" class="view-panel hidden">
+          <div class="panel-header">
+            <div>
+              <h2>Transfer History</h2>
+              <p class="panel-sub">List of all files transferred in this session.</p>
+            </div>
+            <button class="btn btn-outline" id="btnClearHistory">
+              <i data-feather="trash-2"></i> Clear History
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>File Name</th>
+                  <th>File Type</th>
+                  <th>Size</th>
+                  <th>Date &amp; Time</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody"></tbody>
+            </table>
+            <div class="empty-state hidden" id="emptyHistoryMsg">
+              <p>No transfers recorded yet.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 3: SETTINGS -->
+        <section id="view-settings" class="view-panel hidden">
+          <div class="panel-header">
+            <div>
+              <h2>Settings</h2>
+              <p class="panel-sub">Platform preferences and audio notification options.</p>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-item">
+              <div>
+                <h4>Auto-Copy Link</h4>
+                <p>Automatically copy the share link once transfer reaches 100%.</p>
+              </div>
+              <input type="checkbox" id="settingAutoCopy" />
+            </div>
+
+            <div class="settings-item">
+              <div>
+                <h4>Transfer Completion Chime</h4>
+                <p>Play a gentle browser sound effect when file upload finishes.</p>
+              </div>
+              <input type="checkbox" id="settingSound" checked />
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </section>
+
+  <script>
+    /* ========================================================
+       APPLICATION STATE & LOGIC
+    ======================================================== */
+    let currentUploadedFile = null;
+    let uploadIntervalTimer = null;
+    let objectDownloadUrl = null;
+
+    // Screens
+    const authScreen = document.getElementById('authScreen');
+    const dashboardScreen = document.getElementById('dashboardScreen');
+    const authForm = document.getElementById('authForm');
+    const inputUsername = document.getElementById('inputUsername');
+    const inputPassword = document.getElementById('inputPassword');
+    const authErrorMsg = document.getElementById('authErrorMsg');
+    const activeUserLabel = document.getElementById('activeUserLabel');
+    const btnLogout = document.getElementById('btnLogout');
+
+    // Sidebar Navigation
+    const navItems = document.querySelectorAll('.nav-item');
+    const views = {
+      home: document.getElementById('view-home'),
+      history: document.getElementById('view-history'),
+      settings: document.getElementById('view-settings')
+    };
+
+    // Dropzone States
+    const stateIdle = document.getElementById('stateIdle');
+    const stateSelected = document.getElementById('stateSelected');
+    const stateUploading = document.getElementById('stateUploading');
+    const stateSuccess = document.getElementById('stateSuccess');
+
+    const filePicker = document.getElementById('filePicker');
+    const dropZone = document.getElementById('dropZone');
+    const btnBrowseFile = document.getElementById('btnBrowseFile');
+    const btnSelectOther = document.getElementById('btnSelectOther');
+    const btnRemoveFile = document.getElementById('btnRemoveFile');
+    const btnStartTransfer = document.getElementById('btnStartTransfer');
+
+    const selectedFileName = document.getElementById('selectedFileName');
+    const selectedFileSize = document.getElementById('selectedFileSize');
+    const progressSvgCircle = document.getElementById('progressSvgCircle');
+    const progressPctText = document.getElementById('progressPctText');
+    const bytesCounterText = document.getElementById('bytesCounterText');
+    const linearProgressFill = document.getElementById('linearProgressFill');
+
+    const shareUrlInput = document.getElementById('shareUrlInput');
+    const btnCopyShareUrl = document.getElementById('btnCopyShareUrl');
+    const btnDownloadNow = document.getElementById('btnDownloadNow');
+    const btnTransferAnother = document.getElementById('btnTransferAnother');
+
+    const historyTableBody = document.getElementById('historyTableBody');
+    const emptyHistoryMsg = document.getElementById('emptyHistoryMsg');
+    const historyCounter = document.getElementById('historyCounter');
+    const btnClearHistory = document.getElementById('btnClearHistory');
+
+    const settingAutoCopy = document.getElementById('settingAutoCopy');
+    const settingSound = document.getElementById('settingSound');
+
+    /* ========================================================
+       STAGE 1: AUTHENTICATION FLOW
+    ======================================================== */
+    function checkAuthSession() {
+      const activeSession = localStorage.getItem('activeTransferUser');
+      if (activeSession) {
+        activeUserLabel.textContent = activeSession;
+        authScreen.classList.add('hidden');
+        dashboardScreen.classList.remove('hidden');
+        refreshHistoryView();
+      } else {
+        dashboardScreen.classList.add('hidden');
+        authScreen.classList.remove('hidden');
+      }
+      feather.replace();
+    }
+
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = inputUsername.value.trim();
+      const pass = inputPassword.value.trim();
+
+      if (!user || pass.length < 4) {
+        authErrorMsg.classList.remove('hidden');
+        return;
+      }
+
+      authErrorMsg.classList.add('hidden');
+      localStorage.setItem('activeTransferUser', user);
+      authForm.reset();
+      checkAuthSession();
+    });
+
+    btnLogout.addEventListener('click', () => {
+      localStorage.removeItem('activeTransferUser');
+      resetDropzone();
+      checkAuthSession();
+    });
+
+    /* ========================================================
+       SIDEBAR TAB SWITCHING
+    ======================================================== */
+    navItems.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+
+        navItems.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        Object.keys(views).forEach((key) => {
+          if (key === tab) {
+            views[key].classList.remove('hidden');
+          } else {
+            views[key].classList.add('hidden');
+          }
+        });
+
+        if (tab === 'history') {
+          refreshHistoryView();
+        }
+      });
+    });
+
+    /* ========================================================
+       STAGE 2: FILE SELECTION & DRAG-AND-DROP
+    ======================================================== */
+    btnBrowseFile.addEventListener('click', () => filePicker.click());
+    btnSelectOther.addEventListener('click', () => filePicker.click());
+
+    filePicker.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        onFilePicked(e.target.files[0]);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        onFilePicked(e.dataTransfer.files[0]);
+      }
+    });
+
+    function onFilePicked(file) {
+      currentUploadedFile = file;
+      selectedFileName.textContent = file.name;
+      selectedFileSize.textContent = formatBytes(file.size);
+      setDropzoneState('selected');
+    }
+
+    btnRemoveFile.addEventListener('click', resetDropzone);
+
+    /* ========================================================
+       IN-PAGE CIRCULAR UPLOAD ANIMATION & SIMULATION
+    ======================================================== */
+    btnStartTransfer.addEventListener('click', () => {
+      if (!currentUploadedFile) return;
+
+      setDropzoneState('uploading');
+
+      const totalBytes = currentUploadedFile.size;
+      let sentBytes = 0;
+      const circumference = 2 * Math.PI * 50; // r=50 => ~314.16
+
+      progressSvgCircle.style.strokeDasharray = `${circumference}`;
+      progressSvgCircle.style.strokeDashoffset = `${circumference}`;
+
+      const intervalMs = 40;
+      const totalDuration = 2200; // 2.2 seconds simulated transfer
+      const byteChunk = totalBytes / (totalDuration / intervalMs);
+
+      clearInterval(uploadIntervalTimer);
+      uploadIntervalTimer = setInterval(() => {
+        sentBytes += byteChunk;
+
+        if (sentBytes >= totalBytes) {
+          sentBytes = totalBytes;
+          clearInterval(uploadIntervalTimer);
+          updateProgressTelemetry(100, sentBytes, totalBytes, circumference);
+          setTimeout(completeTransferProcess, 250);
+        } else {
+          const pct = Math.floor((sentBytes / totalBytes) * 100);
+          updateProgressTelemetry(pct, sentBytes, totalBytes, circumference);
+        }
+      }, intervalMs);
+    });
+
+    function updateProgressTelemetry(pct, current, total, circumference) {
+      progressPctText.textContent = `${pct}%`;
+      bytesCounterText.textContent = `${formatBytes(current)} of ${formatBytes(total)}`;
+      linearProgressFill.style.width = `${pct}%`;
+
+      const offset = circumference - (pct / 100) * circumference;
+      progressSvgCircle.style.strokeDashoffset = offset;
+    }
+
+    function completeTransferProcess() {
+      if (settingSound.checked) {
+        playChimeSound();
+      }
+
+      // Generate local object URL for downloading without external sites
+      if (objectDownloadUrl) {
+        URL.revokeObjectURL(objectDownloadUrl);
+      }
+      objectDownloadUrl = URL.createObjectURL(currentUploadedFile);
+
+      // Safe local URL format: window.location.origin/download/token
+      const uniqueToken = Math.random().toString(36).substring(2, 8);
+      const safeLocalUrl = `${window.location.origin}/download/${uniqueToken}`;
+      shareUrlInput.value = safeLocalUrl;
+
+      if (settingAutoCopy.checked) {
+        copyShareUrl();
+      }
+
+      // Persist transfer record to localStorage
+      const historyList = getHistoryList();
+      historyList.unshift({
+        id: uniqueToken,
+        name: currentUploadedFile.name,
+        size: formatBytes(currentUploadedFile.size),
+        type: getFileExtension(currentUploadedFile.name),
+        date: new Date().toLocaleString()
+      });
+      localStorage.setItem('localTransferHistory', JSON.stringify(historyList));
+      updateHistoryCounterBadge();
+
+      setDropzoneState('success');
+      feather.replace();
+    }
+
+    /* ========================================================
+       SUCCESS ACTIONS (COPY, DOWNLOAD, RESTART)
+    ======================================================== */
+    btnCopyShareUrl.addEventListener('click', copyShareUrl);
+
+    function copyShareUrl() {
+      navigator.clipboard.writeText(shareUrlInput.value).then(() => {
+        btnCopyShareUrl.innerHTML = `<i data-feather="check"></i> Copied!`;
+        feather.replace();
+        setTimeout(() => {
+          btnCopyShareUrl.innerHTML = `<i data-feather="copy"></i> Copy`;
+          feather.replace();
+        }, 1800);
+      });
+    }
+
+    btnDownloadNow.addEventListener('click', () => {
+      if (!objectDownloadUrl || !currentUploadedFile) return;
+      const dlLink = document.createElement('a');
+      dlLink.href = objectDownloadUrl;
+      dlLink.download = currentUploadedFile.name;
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      document.body.removeChild(dlLink);
+    });
+
+    btnTransferAnother.addEventListener('click', resetDropzone);
+
+    function resetDropzone() {
+      currentUploadedFile = null;
+      filePicker.value = '';
+      progressSvgCircle.style.strokeDashoffset = '314';
+      linearProgressFill.style.width = '0%';
+      progressPctText.textContent = '0%';
+      setDropzoneState('idle');
+      feather.replace();
+    }
+
+    function setDropzoneState(state) {
+      stateIdle.classList.add('hidden');
+      stateSelected.classList.add('hidden');
+      stateUploading.classList.add('hidden');
+      stateSuccess.classList.add('hidden');
+
+      if (state === 'idle') stateIdle.classList.remove('hidden');
+      if (state === 'selected') stateSelected.classList.remove('hidden');
+      if (state === 'uploading') stateUploading.classList.remove('hidden');
+      if (state === 'success') stateSuccess.classList.remove('hidden');
+    }
+
+    /* ========================================================
+       LOCALSTORAGE HISTORY MANAGEMENT
+    ======================================================== */
+    function getHistoryList() {
+      return JSON.parse(localStorage.getItem('localTransferHistory') || '[]');
+    }
+
+    function updateHistoryCounterBadge() {
+      const records = getHistoryList();
+      historyCounter.textContent = records.length;
+    }
+
+    function refreshHistoryView() {
+      const records = getHistoryList();
+      historyTableBody.innerHTML = '';
+      updateHistoryCounterBadge();
+
+      if (records.length === 0) {
+        emptyHistoryMsg.classList.remove('hidden');
+        return;
+      }
+
+      emptyHistoryMsg.classList.add('hidden');
+      records.forEach((item) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${escapeHtml(item.name)}</strong></td>
+          <td><span class="file-type-badge">${escapeHtml(item.type)}</span></td>
+          <td style="font-family: monospace;">${item.size}</td>
+          <td style="color: #64748b; font-size: 0.85rem;">${item.date}</td>
+          <td>
+            <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="alert('File: ${escapeHtml(item.name)}\\nSize: ${item.size}')">
+              Info
+            </button>
+          </td>
+        `;
+        historyTableBody.appendChild(row);
+      });
+
+      feather.replace();
+    }
+
+    btnClearHistory.addEventListener('click', () => {
+      if (confirm('Clear all transfer history records?')) {
+        localStorage.removeItem('localTransferHistory');
+        refreshHistoryView();
+      }
+    });
+
+    /* ========================================================
+       UTILITIES & WEB AUDIO CHIME
+    ======================================================== */
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function getFileExtension(filename) {
+      return (filename.split('.').pop() || 'FILE').toUpperCase();
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function playChimeSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.15); // G5
+
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {
+        // Audio policy fallback
+      }
+    }
+
+    // Initialize application state
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuthSession();
+      feather.replace();
+    });
+  </script>
+</body>
+</html>
